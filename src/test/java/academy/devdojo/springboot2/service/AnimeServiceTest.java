@@ -1,6 +1,7 @@
 package academy.devdojo.springboot2.service;
 
 import academy.devdojo.springboot2.domain.Anime;
+import academy.devdojo.springboot2.exception.BadRequestException;
 import academy.devdojo.springboot2.repository.AnimeRepository;
 import academy.devdojo.springboot2.requests.AnimePostRequestBody;
 import academy.devdojo.springboot2.requests.AnimePutRequestBody;
@@ -184,6 +185,25 @@ class AnimeServiceTest {
 
         Assertions.assertThatCode( () ->  animeService.delete(1))
                 .doesNotThrowAnyException();
+
+
+
+    }
+
+
+
+    @Test
+    @DisplayName("Find by Id or throws bad request exceptions whenAnimeIsNotFound ")
+    void findByIdOrThrowBadRequestException_findByIdOrThrowBadRequestException_whenAnimeIsNotFound(){
+
+        BDDMockito.when(animeRepositoryMock.findById(ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.empty());
+
+
+        Long expectedId = AnimeCreator.createAnimeValid().getId();
+
+        Assertions.assertThatExceptionOfType(BadRequestException.class)
+                .isThrownBy(()-> animeService.findByIdOrThrowBadRequestException(1));
 
 
 
