@@ -3,6 +3,7 @@ package academy.devdojo.springboot2.integration;
 import academy.devdojo.springboot2.domain.Anime;
 import academy.devdojo.springboot2.repository.AnimeRepository;
 import academy.devdojo.springboot2.requests.AnimePostRequestBody;
+import academy.devdojo.springboot2.requests.AnimePutRequestBody;
 import academy.devdojo.springboot2.util.AnimeCreator;
 import academy.devdojo.springboot2.util.AnimePostRequestBodyCreator;
 import academy.devdojo.springboot2.util.AnimePutRequestBodyCreator;
@@ -20,15 +21,18 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Collections;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)  //to clean database before each test.
 public class AnimeControllerIT {
 
     @Autowired
@@ -151,42 +155,40 @@ public class AnimeControllerIT {
       Assertions.assertThat(animeResponseEntity.getBody().getId()).isNotNull();
   }
 
-//
-//    @Test
-//    @DisplayName("replace Anime Return anime when Sucessful.")
-//    void updateAnime(){
-//
-//        animeController.replace(AnimePutRequestBodyCreator.createAnimePutRequestBody()).getBody();
-//
-//
-//        Assertions.assertThatCode( () ->  animeController.replace(AnimePutRequestBodyCreator.createAnimePutRequestBody()))
-//                .doesNotThrowAnyException();
-//
-//        ResponseEntity<Void> entity = animeController.replace(AnimePutRequestBodyCreator.createAnimePutRequestBody());
-//        Assertions.assertThat(entity).isNotNull();
-//        Assertions.assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-//
-//
-//    }
-//
-//    @Test
-//    @DisplayName("delete Anime")
-//    void deleteAnime(){
-//
-//        animeController.replace(AnimePutRequestBodyCreator.createAnimePutRequestBody()).getBody();
-//
-//
-//        Assertions.assertThatCode( () ->  animeController.delete(1))
-//                .doesNotThrowAnyException();
-//
-//        ResponseEntity<Void> entity = animeController.delete(1);
-//        Assertions.assertThat(entity).isNotNull();
-//        Assertions.assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-//
-//
-//    }
-//
-//
+
+   @Test
+   @DisplayName("replace Anime Return anime when Sucessful.")
+   void updateAnime(){
+       Anime animeSaved= animeRepository.save(AnimeCreator.createAnimeValid());
+
+       animeSaved.setName("Johnn");
+
+       ResponseEntity<Void> animeResponseEntity= testRestTemplate.exchange("/animes", HttpMethod.PUT,new HttpEntity<>(animeSaved) ,Void.class);
+
+
+       Assertions.assertThat(animeResponseEntity).isNotNull();
+
+       Assertions.assertThat(animeResponseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+   }
+
+    @Test
+    @DisplayName("delete Anime")
+    void deleteAnime(){
+
+        Anime animeSaved= animeRepository.save(AnimeCreator.createAnimeValid());
+
+
+        ResponseEntity<Void> animeResponseEntity= testRestTemplate.exchange("/animes/{id}", HttpMethod.DELETE,null ,Void.class, animeSaved.getId());
+
+
+        Assertions.assertThat(animeResponseEntity).isNotNull();
+
+        Assertions.assertThat(animeResponseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+    }
+
+
 
 
 }
