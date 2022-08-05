@@ -1,7 +1,9 @@
 package academy.devdojo.springboot2.integration;
 
 import academy.devdojo.springboot2.domain.Anime;
+import academy.devdojo.springboot2.domain.User;
 import academy.devdojo.springboot2.repository.AnimeRepository;
+import academy.devdojo.springboot2.repository.UserRepository;
 import academy.devdojo.springboot2.requests.AnimePostRequestBody;
 import academy.devdojo.springboot2.requests.AnimePutRequestBody;
 import academy.devdojo.springboot2.util.AnimeCreator;
@@ -14,10 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,12 +43,62 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)  //to clean database before each test.
 public class AnimeControllerIT {
 
-    @Autowired
-    private TestRestTemplate testRestTemplate;
-    @LocalServerPort
-    private int port;
+
+
+//    @LocalServerPort
+//    private int port;
+
     @Autowired
     private AnimeRepository animeRepository;
+
+
+    @Autowired
+    @Qualifier(value = "testRestTemplateRoleUser")
+    private TestRestTemplate testRestTemplate;
+
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private static final  User USER = User.builder()
+            .name("edu")
+            .password("{bcrypt}$2a$10$1.txFcHf4Z7FMBzzsZM6C./rLzHIk7WrBewwDLl3Km1ieNwAbOL2q")
+            .username("eduardo")
+            .authorities("ROLE_USER")
+            .build();
+
+    private static final  User ADMIN = User.builder()
+            .name("edu")
+            .password("{bcrypt}$2a$10$1.txFcHf4Z7FMBzzsZM6C./rLzHIk7WrBewwDLl3Km1ieNwAbOL2q")
+            .username("edu")
+            .authorities("ROLE_USER,ROLE_ADMIN")
+            .build();
+
+    @TestConfiguration
+    @Lazy
+    static class Confi{
+
+        @Bean(name = "testRestTemplateRoleUser")
+        public TestRestTemplate testRestTemplateRoleUserCreator(@Value("${local.server.port}") int port){
+
+
+            RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder()
+                    .rootUri("http://localhost:"+port)
+                    .basicAuthentication("eduardo", "test");
+            return new TestRestTemplate(restTemplateBuilder);
+        }
+
+        @Bean(name = "testRestTemplateRoleAdmin")
+        public TestRestTemplate testRestTemplateRoleAdminCreator(@Value("${local.server.port}") int port){
+
+
+            RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder()
+                    .rootUri("http://localhost:"+port)
+                    .basicAuthentication("edu", "test");
+            return new TestRestTemplate(restTemplateBuilder);
+        }
+    }
+
 
     @Test
     @DisplayName("List return list of anime inside page when sucess.")
@@ -49,6 +107,8 @@ public class AnimeControllerIT {
         Anime animeSaved= animeRepository.save(AnimeCreator.createAnimeValid());
         String expectedName = animeSaved.getName();
 
+
+        userRepository.save(USER);
 
        PageableResponse<Anime> animePage=  testRestTemplate.exchange("/animes", HttpMethod.GET, null, new ParameterizedTypeReference<PageableResponse<Anime>>() {
         }).getBody();
