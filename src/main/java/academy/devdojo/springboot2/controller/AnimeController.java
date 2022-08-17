@@ -8,6 +8,7 @@ import academy.devdojo.springboot2.util.DateUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -70,8 +71,8 @@ public class AnimeController {
     }
 
     @DeleteMapping(path = "/admin/{id}")
-    @ApiResponse(value= {
-            @ApiResponse(responseCode = "204", description = "Successful Operation")
+    @ApiResponses(value= {
+            @ApiResponse(responseCode = "204", description = "Successful Operation"),
             @ApiResponse(responseCode = "400", description = "Whe Anime does not exist in database")
     })
     public ResponseEntity<Void> delete(@PathVariable long id) {

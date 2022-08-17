@@ -34,7 +34,7 @@ public class SpringClient {
 //        Anime kingdomSaved = new RestTemplate().postForObject("http://localhost:8080/animes/", kingdom, Anime.class);
 //        log.info("saved anime {}", kingdomSaved);
 
-        Anime samuraiChamploo = Anime.builder().name("Samurai Champloo").build();
+                        Anime samuraiChamploo = Anime.builder().name("Samurai Champloo").build();
         ResponseEntity<Anime> samuraiChamplooSaved = new RestTemplate().exchange("http://localhost:8080/animes/",
                 HttpMethod.POST,
                 new HttpEntity<>(samuraiChamploo, createJsonHeader()),
